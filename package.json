@@ -1,0 +1,33 @@
+{
+  "name": "cloudflare-ai-crawl-history",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Keep Cloudflare's AI crawler analytics for longer than your plan does: a cron-only Worker copies which verified bot read which page into R2, every four hours, for every site you list.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "exports": {
+    ".": "./lib/index.mjs",
+    "./collect": "./lib/collect.mjs",
+    "./cloudflare": "./lib/cloudflare.mjs",
+    "./classify": "./lib/classify.mjs",
+    "./archive": "./lib/archive.mjs",
+    "./report": "./lib/report.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "demo": "node bin/report.mjs --archive demo/sample-archive --now 2026-10-10T08:20:00Z --days 7",
+    "demo:site": "node bin/report.mjs --archive demo/sample-archive --now 2026-10-10T08:20:00Z --days 7 --site example.com --locales fr,de",
+    "setup": "wrangler r2 bucket create ai-crawl-history && wrangler d1 create ai-crawl-history",
+    "schema": "wrangler d1 execute ai-crawl-history --remote --file schema.sql",
+    "preflight": "node bin/preflight.mjs",
+    "deploy": "wrangler deploy",
+    "pull": "node bin/pull.mjs",
+    "report": "node bin/report.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.40.0"
+  }
+}

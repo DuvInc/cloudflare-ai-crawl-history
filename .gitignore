@@ -1,0 +1,23 @@
+node_modules/
+.DS_Store
+
+# Real keys. CF_ANALYTICS_TOKEN reads every listed zone's analytics.
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# Your real archive, pulled from R2. It is your sites' traffic: it belongs in
+# your bucket and on your machine, not in a public repository. The invented
+# sample in demo/sample-archive/ is committed on purpose.
+/.archive/
+*.ndjson.gz
+!demo/sample-archive/**/*.ndjson.gz
+
+# Wrangler's local state.
+.wrangler/
+
+# Editor and agent tooling. The skill lives in `skills/`, which is committed.
+.vscode/
+.idea/
+.claude/

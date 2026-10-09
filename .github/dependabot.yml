@@ -1,0 +1,8 @@
+# There are no npm dependencies to update, so this watches the one thing that
+# does move: the actions used by CI.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

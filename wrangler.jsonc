@@ -1,0 +1,52 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ai-crawl-history",
+  "main": "worker/index.mjs",
+  "compatibility_date": "2026-10-01",
+
+  /* No HTTP surface at all. `scheduled` is the only export, and with no
+     workers.dev hostname, no preview URL and no route, nothing can send this
+     Worker a request. That is the security model: the bindings below can
+     write. */
+  "workers_dev": false,
+  "preview_urls": false,
+
+  /* Every four hours, seven minutes past. The seven minutes let the window
+     that just closed settle in Cloudflare's analytics before it is read. */
+  "triggers": { "crons": ["7 */4 * * *"] },
+
+  /* Create both once: `npm run setup` (see README). Paste the D1 id below. */
+  "r2_buckets": [{ "binding": "ARCHIVE", "bucket_name": "ai-crawl-history" }],
+  "d1_databases": [
+    { "binding": "DB", "database_name": "ai-crawl-history", "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID" }
+  ],
+
+  "vars": {
+    /* Your account id: dashboard, any zone, right column "Account ID". Used
+       to refuse zones from another account, not as a secret. */
+    "CF_ACCOUNT_ID": "REPLACE_WITH_YOUR_ACCOUNT_ID",
+
+    /* The sites to archive. Listed explicitly rather than discovered, so a
+       zone is never archived by accident. Adding one is a line here, a token
+       that covers it, and a deploy.
+
+       `since` is optional: the first window this collector owns, for a site
+       whose earlier history you imported from somewhere else. Collecting
+       before it would count those hours twice. */
+    "SITES": [
+      { "zone": "example.com" }
+    ]
+
+    /* Optional knobs, with their defaults:
+       "WINDOW_HOURS": "4"         change it only on an empty archive
+       "MAX_HORIZON_HOURS": "168"  how far back a run may reach, at most
+       "QUERY_BUDGET": "200"       GraphQL queries per run (quota: 300 / 5 min) */
+  },
+
+  /* One secret, CF_ANALYTICS_TOKEN: Zone > Zone > Read and
+     Zone > Analytics > Read, on each zone in SITES. Nothing else.
+     Set it with `npx wrangler secret put CF_ANALYTICS_TOKEN`, or let
+     `bin/create-token.sh` create, test and set it without printing it. */
+
+  "observability": { "enabled": true }
+}

@@ -1,0 +1,35 @@
+name: CI
+
+# Pull requests only get the default read-only token, and nothing here needs
+# more. No secret is referenced, and `pull_request` (never
+# `pull_request_target`) means a fork's code cannot reach one.
+#
+# Note what CI does NOT do: deploy, or call Cloudflare. The tests stub the API,
+# and they cover the parts where data would be lost silently.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      # No `npm install`: the tests need nothing, and wrangler is only for deploying.
+      - run: npm test
+      # Every script must at least parse. A syntax error in one that only runs
+      # by hand is otherwise found by somebody following the README.
+      - run: for f in bin/*.mjs worker/index.mjs demo/make-sample.mjs; do node --check "$f"; done && bash -n bin/create-token.sh
+      # The demo runs on the committed sample, so the README excerpt stays reproducible.
+      - run: npm run demo > /dev/null

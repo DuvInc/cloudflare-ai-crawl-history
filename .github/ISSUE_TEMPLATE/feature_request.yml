@@ -1,0 +1,19 @@
+name: Feature request
+description: Something this tool should be able to do and cannot.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you are trying to find out
+      description: The question you want the archive to answer, not the solution.
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This does not need a new npm dependency, or I have said why it does.
+        - label: This does not give the collector Worker an HTTP surface, or I have said why it must.
+        - label: The data it needs is available on my plan (I checked the GraphQL dataset), or I have said which plan it needs.

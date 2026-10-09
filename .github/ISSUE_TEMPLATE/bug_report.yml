@@ -1,0 +1,35 @@
+name: Bug report
+description: Something does not work the way this repository says it does.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you ran, what you expected, and what you got.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: ledger
+    attributes:
+      label: The ledger rows, if this is a collection problem
+      description: >
+        From `collector_runs`: hour, span_hours, status, rows, groups, note.
+        Most collector bugs show up there first.
+      render: text
+  - type: input
+    id: setup
+    attributes:
+      label: Commit, Node version, Cloudflare plan, number of sites
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before filing
+      options:
+        - label: My paste contains no API token.
+          required: true
+        - label: My paste contains no archive file and no path I would not publish.
+          required: true
