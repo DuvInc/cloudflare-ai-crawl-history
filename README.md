@@ -9,11 +9,13 @@ crawler's IP and labels it. That is the data behind AI Crawl Control, and
 it's the only first-party view most sites have of how AI engines use them:
 the GEO, or AEO, question.
 
-The catch is the window. On the Free plan, AI Crawl Control showed the last
-24 hours when this project started. It shows 30 days now. Either way the
-detail ages out, and you can't compare this quarter with the last one, see
-what changed after you shipped `llms.txt`, or check whether the crawlers ever
-came back for the pages you rewrote.
+The catch is the window. When this project started, AI Crawl Control on the
+Free plan showed the last 24 hours, and more needed Enterprise. Since 15
+September 2026, Cloudflare keeps 30 days for all its analytics, AI Crawl
+Control included. That's a lot better, and it still ages out: you can't
+compare this quarter with the last one, see what changed three months after
+you shipped `llms.txt`, or check whether the crawlers ever came back for the
+pages you rewrote.
 
 This is a Cloudflare Worker that runs every four hours and copies that data,
 per site, per page, per bot, into files in your own R2 bucket. One Worker covers
@@ -102,12 +104,19 @@ and a PUT replaces the whole object, so collecting a window twice gives the
 same file.
 
 **The horizon comes from the API.** Retention depends on your plan and it has
-changed: AI Crawl Control went from 24 hours to 30 days on Free while its
-docs still said 24. So each run reads the zone's own limit from the GraphQL
-`settings` node, keeps a 4 hour margin, and caps itself at a week so the
-first run doesn't burn the account's query quota (300 per 5 minutes) on
-history. If the settings can't be read, it falls back to 20 hours, which is
-safe on any plan. `npm run preflight` prints what your zones allow.
+changed: it went from 24 hours to 30 days on 15 September 2026, and parts of
+Cloudflare's docs still said 24 hours weeks later. So each run reads the
+zone's own limit from the GraphQL `settings` node, keeps a 4 hour margin, and
+caps itself at a week so the first run doesn't burn the account's query quota
+(300 per 5 minutes) on history. If the settings can't be read, it falls back
+to 20 hours, which is safe on any plan. `npm run preflight` prints what your
+zones allow.
+
+With 30 days of retention, the collector can be broken for a week and still
+catch up on its own (raise `MAX_HORIZON_HOURS` to stretch that towards the
+plan's limit). With the old 24 hours, a bad weekend meant a hole. The design kept
+the four hour cadence anyway: it's what keeps each query under the group cap,
+not what keeps up with the retention.
 
 **No HTTP surface.** The Worker exports `scheduled` and nothing else: no
 `fetch`, no route, no workers.dev hostname. It holds a token that reads your
