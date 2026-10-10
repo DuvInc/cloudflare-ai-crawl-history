@@ -3,9 +3,7 @@
 This repository ships no HTTP API on purpose. The collector exports
 `scheduled` and nothing else, and you read the archive through your own
 wrangler session (`npm run pull`). With one reader, an endpoint is attack
-surface and nothing more: the first version of this collector had a token
-protected SQL endpoint, and it was removed once it was clear the only caller
-already had `wrangler login`.
+surface and nothing more, and the only caller already has `wrangler login`.
 
 That changes when the reader is a teammate, a dashboard, an agent, or a
 product. Below are three ways to do it, from the least code to the most. The

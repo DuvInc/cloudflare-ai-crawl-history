@@ -26,6 +26,31 @@ npm run pull && npm run report
 ```
 
 ```text
+== AI crawlers ==
+
+    bot_name            bot_category  requests  distinct_path  per_day
+    ------------------  ------------  --------  -------------  -------
+    meta-externalagent  AI Crawler        2862             18      358
+    GPTBot              AI Crawler        1833             32      229
+    ClaudeBot           AI Crawler        1338             32      167
+    Amazonbot           AI Crawler         763             32       95
+    PerplexityBot       AI Search          598             30       75
+    OAI-SearchBot       AI Search          428             23       54
+    ChatGPT-User        AI Assistant       218             18       27
+```
+
+That's the invented sample archive in `demo/`. The same report also gives you
+the pages they fetch, requests per day, AI share of all bot traffic, and a
+health check that tells you which windows are missing before you trust any
+number.
+
+## Do the bots read your Markdown twins?
+
+If you serve a Markdown twin of each page (a `.md` file next to the HTML, or
+`llms.txt`), the report also shows which bots actually take them. If you don't,
+this section is just empty.
+
+```text
 == Who takes the Markdown twins ==
 
     bot_name            pages_and_twins  twins  twin_share
@@ -36,25 +61,29 @@ npm run pull && npm run report
     Amazonbot                       687    178  25.9%
 ```
 
-That's the invented sample archive in `demo/`. On a real job board with
-14,984 Markdown twins, the first four days gave: **ClaudeBot took the `.md`
-version 49.8% of the time, GPTBot 41.5%, Amazonbot 26.8%, and
-meta-externalagent made 38,445 requests without ever taking one. `llms.txt`
-got zero requests in the first three and a half days.** None of that is
-visible in the dashboard a week later.
+On a real job board with 14,984 Markdown twins, the first four days gave:
+**ClaudeBot took the `.md` version 49.8% of the time, GPTBot 41.5%, Amazonbot
+26.8%, and meta-externalagent made 38,445 requests without ever taking one.
+`llms.txt` got zero requests in the first three and a half days.** None of that
+is visible in the dashboard a week later.
+
+To add twins to an Astro site, see
+[astro-md-twins](https://github.com/DuvInc/astro-md-twins). To get them on a
+docs site, with an MCP server for agents on top, see
+[Duvlify](https://github.com/DuvInc/duvlify).
 
 ## What it costs
 
-| | First version: rows in D1 | This version: files in R2 |
-| :--- | ---: | ---: |
-| Writes per site per day | ~150,000 billed rows | 12 objects |
-| Storage per site per day | ~10 MB | ~1 MB |
-| Share of the Cloudflare bill | 83% ($4.23 of $5.10, 30 days) | ~0 |
-| Reading a year of data | billed per row read | free, on your machine |
+| | Per site, per day |
+| :--- | ---: |
+| Writes | 12 objects |
+| Storage | ~1 MB |
+| Share of the Cloudflare bill | ~0 |
+| Reading a year of data | free, on your machine |
 
-Measured on the same site, a job board with about 37,000 distinct paths. You
-need Workers Paid ($5 a month, see [What this is not](#what-this-is-not)).
-R2, D1 and the GraphQL calls stay inside its included usage.
+Measured on a job board with about 37,000 distinct paths. You need
+Workers Paid ($5 a month, see [What this is not](#what-this-is-not)). R2, D1
+and the GraphQL calls stay inside its included usage.
 
 ## How it works
 
@@ -88,13 +117,11 @@ bot query and the all-traffic query are separate: the bot one carries
 scanner can't push it over. And it's why a full window is split and read
 again, rather than trusted.
 
-**Files, not rows.** The first version wrote rows to D1. D1 bills every row
-once per index it touches, and that table had five indexes, so ~25,000 real
-rows a day became ~150,000 billed writes, and the cheapest part of the setup
-became 83% of the bill. One exploratory self-join then read 692 million rows
-in an afternoon. The data is append-only and rarely read, so it's now two
-gzipped files per window, and D1 keeps only the ledger, about six rows per
-site per day.
+**Files, not rows.** The data is append-only and rarely read, so it's two
+gzipped files per window in R2. D1 only keeps the ledger, about six rows per
+site per day. D1 bills every row once per index it touches, so putting
+the crawl rows themselves there would have made the cheapest part of the setup
+the most expensive one.
 
 **Self-healing.** Each run collects every window that closed within the
 horizon and has no `ok` marker, oldest first. A run that fails, or a token
@@ -114,9 +141,8 @@ zones allow.
 
 With 30 days of retention, the collector can be broken for a week and still
 catch up on its own (raise `MAX_HORIZON_HOURS` to stretch that towards the
-plan's limit). With the old 24 hours, a bad weekend meant a hole. The design kept
-the four hour cadence anyway: it's what keeps each query under the group cap,
-not what keeps up with the retention.
+plan's limit). The four hour cadence is what keeps each query under the group
+cap, not what keeps up with the retention.
 
 **No HTTP surface.** The Worker exports `scheduled` and nothing else: no
 `fetch`, no route, no workers.dev hostname. It holds a token that reads your

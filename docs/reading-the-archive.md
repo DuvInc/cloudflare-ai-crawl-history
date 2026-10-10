@@ -34,10 +34,8 @@ at two granularities. If they disagree by more than about 2x, the result is
 "this method is unreliable at this sample size", not whichever number was
 computed first.
 
-The same query was also expensive: a self-join on `path || '.md'` cannot use
-an index, and while the archive still lived in D1, about 110 runs of it read
-692 million rows in one afternoon. In files, read locally, it costs nothing,
-which is one more reason the data is in files.
+The same query is also heavy: a self-join on `path || '.md'` cannot use an
+index. Read locally from files, it costs nothing.
 
 ## 3. `SUM(requests)`, never `COUNT(*)`
 

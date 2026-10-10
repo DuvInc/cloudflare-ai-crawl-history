@@ -1,7 +1,6 @@
 -- The collector's ledger. The DATA is not here: it is gzipped NDJSON in the
--- R2 bucket (see lib/archive.mjs). Storing data rows in D1 was tried first,
--- and every row was billed once per index it touched: 83% of the account's
--- Cloudflare bill. This table gets about 6 rows per site per day.
+-- R2 bucket (see lib/archive.mjs). D1 bills every row once per index it
+-- touches, so it only holds this table: about 6 rows per site per day.
 --
 -- One row per (site, window) attempted. It does three jobs:
 --   1. the collector's idempotency guard: an `ok` window is never read again;
