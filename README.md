@@ -1,5 +1,7 @@
 # cloudflare-ai-crawl-history
 
+![cloudflare-ai-crawl-history: a dithered banner with the project name and its one-line summary](docs/hero.png)
+
 **Cloudflare tells you which AI crawlers read which of your pages. Then it
 forgets. This keeps it.**
 
